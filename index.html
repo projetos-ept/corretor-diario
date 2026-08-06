@@ -519,7 +519,7 @@ const CATEGORIAS = [
   {id:4, nome:"Conclusão", cor:"var(--cat-4)", corSoft:"var(--cat-4-soft)"}
 ];
 
-// Marcador usado no campo tag1 do Prompt Master para isolar registros desta página
+// Marcador usado no campo tags (array) do Prompt Master para isolar registros desta página
 // de qualquer outro prompt não relacionado que já exista na mesma base.
 const DIARIO_TAG = "diario-orientacao";
 
@@ -574,7 +574,7 @@ async function apiListar(cfg){
   const data = await apiFetch(cfg, "/api/prompts");
   const lista = Array.isArray(data) ? data : (data.prompts || data.items || []);
   return lista
-    .filter(p => p.tag1 === DIARIO_TAG || p.tag2 === DIARIO_TAG || p.tag3 === DIARIO_TAG)
+    .filter(p => Array.isArray(p.tags) && p.tags.includes(DIARIO_TAG))
     .map(p => {
       const cat = CATEGORIAS.find(c => c.nome === p.categoria);
       const partes = desempacotar(p.prompt);
@@ -596,7 +596,7 @@ async function apiCriar(cfg, item){
       titulo: item.tema,
       prompt: empacotar(item.versao_simples, item.versao_futura),
       categoria: cat ? cat.nome : "",
-      tag1: DIARIO_TAG
+      tags: [DIARIO_TAG]
     })
   });
   return String(criado.id);
@@ -610,7 +610,7 @@ async function apiAtualizar(cfg, id, item){
       titulo: item.tema,
       prompt: empacotar(item.versao_simples, item.versao_futura),
       categoria: cat ? cat.nome : "",
-      tag1: DIARIO_TAG
+      tags: [DIARIO_TAG]
     })
   });
 }
