@@ -99,6 +99,34 @@
   }
   .gear:hover{border-color:var(--ink);color:var(--ink);}
 
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.5px;
+    color:var(--muted);
+    border:1px solid var(--line-strong);
+    padding:5px 10px 5px 8px;
+    white-space:nowrap;
+  }
+  .status-dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--muted-2);
+    flex:none;
+  }
+  .status-pill[data-status="conectando"] .status-dot{
+    background:var(--cat-1);
+    animation:pulse 1s ease-in-out infinite;
+  }
+  .status-pill[data-status="online"]{border-color:var(--ok);color:var(--ok);}
+  .status-pill[data-status="online"] .status-dot{background:var(--ok);}
+  .status-pill[data-status="erro"]{border-color:var(--err);color:var(--err);}
+  .status-pill[data-status="erro"] .status-dot{background:var(--err);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 
   .search-box{flex:1 1 260px;position:relative;}
@@ -425,8 +453,12 @@
         <h1>Orientações · Diário de Bordo</h1>
       </div>
       <div class="right">
+        <div class="status-pill" id="statusPill" data-status="conectando" title="">
+          <span class="status-dot"></span><span id="statusText">—</span>
+        </div>
         <div class="count" id="visibleCount">—</div>
         <button class="gear" id="btnConfig" title="Trocar endpoint/chave">⚙</button>
+        <button class="gear" id="btnLogout" title="Sair (limpa a chave salva)">⏻</button>
       </div>
     </div>
     <div class="toolbar">
@@ -629,22 +661,34 @@ function fallbackCopy(texto, cb){
   document.body.removeChild(ta);
 }
 
+// ===== Indicador de status da API =====
+function setStatus(status, texto, tooltip){
+  const pill = document.getElementById("statusPill");
+  pill.setAttribute("data-status", status);
+  pill.title = tooltip || "";
+  document.getElementById("statusText").textContent = texto;
+}
+
 // ===== Carregamento =====
 async function carregar(){
   const cfg = getConfig();
   if(!cfg) return abrirGate();
   carregando = true;
+  setStatus("conectando", "Conectando…");
   renderStatus("Carregando orientações…");
   try{
     orientacoes = await apiListar(cfg);
     carregando = false;
+    setStatus("online", "API online", cfg.endpoint);
     render();
   }catch(err){
     carregando = false;
     if(err.message === "AUTH"){
+      setStatus("erro", "Chave rejeitada", "A API recusou a chave salva");
       toast("Chave de API inválida ou expirada", true);
       abrirGate("Chave rejeitada pela API. Verifique e tente novamente.");
     }else{
+      setStatus("erro", "Sem conexão", err.message);
       renderStatus("Não foi possível carregar as orientações. " + err.message, true, carregar);
     }
   }
@@ -747,6 +791,7 @@ function render(){
 
 // ===== Gate (endpoint + chave) =====
 function abrirGate(erro){
+  setStatus("erro", "Desconectado", erro || "");
   document.getElementById("gateError").textContent = erro || "";
   document.getElementById("gateError").classList.toggle("show", !!erro);
   const cfg = getConfig();
@@ -784,6 +829,16 @@ document.getElementById("btnConfig").addEventListener("click", () => {
     clearConfig();
     abrirGate();
   }
+});
+
+document.getElementById("btnLogout").addEventListener("click", () => {
+  if(!confirm("Sair? A chave salva neste navegador será apagada e você vai precisar entrar de novo.")) return;
+  clearConfig();
+  orientacoes = [];
+  filtro = "";
+  document.getElementById("searchInput").value = "";
+  document.getElementById("gateKey").value = "";
+  abrirGate();
 });
 
 // ===== Ações de item =====
