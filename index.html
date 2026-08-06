@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orientações · Diário de Bordo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF3F1;
+    --surface:#FFFFFF;
+    --ink:#16211E;
+    --muted:#5B6B66;
+    --muted-2:#8A968F;
+    --line:#D7DED9;
+    --line-strong:#B9C4BE;
+    --ok:#2E7D5B;
+    --err:#B23B2E;
+
+    --cat-1:#C9A227;
+    --cat-1-soft:#FBF3D9;
+    --cat-2:#B23B2E;
+    --cat-2-soft:#FAE3DF;
+    --cat-3:#2E5F8A;
+    --cat-3-soft:#DEE9F2;
+    --cat-4:#6B4A8A;
+    --cat-4-soft:#EAE1F2;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    background-image:
+      linear-gradient(rgba(22,33,30,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22,33,30,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px;}
+
+  header{
+    background:var(--surface);
+    border-bottom:2px solid var(--ink);
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .header-inner{
+    max-width:980px;
+    margin:0 auto;
+    padding:18px 20px 16px;
+  }
+  .form-title{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .form-title .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .form-title h1{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:20px;
+    font-weight:600;
+    letter-spacing:-0.2px;
+  }
+  .form-title .right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .form-title .count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .gear{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    background:none;
+    border:1px solid var(--line-strong);
+    padding:5px 9px;
+    cursor:pointer;
+  }
+  .gear:hover{border-color:var(--ink);color:var(--ink);}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  .search-box{flex:1 1 260px;position:relative;}
+  .search-box input{
+    width:100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    padding:11px 14px 11px 34px;
+    border:1.5px solid var(--line-strong);
+    background:var(--paper);
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .search-box input:focus{border-color:var(--ink);}
+  .search-box::before{
+    content:"⌕";
+    position:absolute;
+    left:11px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:16px;
+    color:var(--muted);
+    pointer-events:none;
+  }
+
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    padding:11px 14px;
+    border:1.5px solid var(--ink);
+    background:var(--surface);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .12s ease, color .12s ease;
+  }
+  .btn:hover{background:var(--ink);color:var(--surface);}
+  .btn[disabled]{opacity:0.4;cursor:not-allowed;}
+  .btn.ghost{border-color:var(--line-strong);color:var(--muted);}
+  .btn.ghost:hover{background:var(--muted);color:var(--surface);border-color:var(--muted);}
+
+  input[type=file]{display:none;}
+
+  main{max-width:980px;margin:0 auto;padding:24px 20px 0;}
+
+  .status-line{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--muted);
+    padding:30px 0;
+    text-align:center;
+  }
+  .status-line.error{color:var(--err);}
+  .status-line button{
+    display:block;
+    margin:14px auto 0;
+  }
+
+  .category{
+    background:var(--surface);
+    border:1.5px solid var(--line);
+    margin-bottom:22px;
+  }
+
+  .category-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 18px;
+    border-bottom:1.5px solid var(--line);
+    border-left:6px solid var(--cat-color);
+  }
+  .cap{
+    width:22px;height:22px;
+    border-radius:50%;
+    flex:none;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,0.85), rgba(255,255,255,0) 45%),
+      var(--cat-color);
+    box-shadow: inset 0 -3px 4px rgba(0,0,0,0.25);
+  }
+  .category-head .cat-name{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:14.5px;
+    flex:1;
+  }
+  .category-head .cat-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted-2);
+  }
+  .category-head .cat-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:2px 8px;
+  }
+
+  .items{padding:6px 0;}
+
+  .item{
+    padding:14px 18px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .item:last-child{border-bottom:none;}
+
+  .item-actions{
+    position:absolute;
+    top:12px;
+    right:16px;
+    display:flex;
+    gap:6px;
+    opacity:0;
+    transition:opacity .12s ease;
+  }
+  .item:hover .item-actions{opacity:1;}
+  .item-actions button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    background:var(--paper);
+    border:1px solid var(--line-strong);
+    color:var(--muted);
+    padding:3px 7px;
+    cursor:pointer;
+  }
+  .item-actions button:hover{border-color:var(--ink);color:var(--ink);}
+  .item-actions button.danger:hover{border-color:var(--cat-2);color:var(--cat-2);}
+
+  .item-tema{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+
+  .versoes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:640px){.versoes{grid-template-columns:1fr;}}
+
+  .versao{
+    padding:10px 12px;
+    border:1px dashed var(--line-strong);
+    cursor:pointer;
+    position:relative;
+    transition:background .12s ease, border-color .12s ease;
+    font-size:13.5px;
+    line-height:1.5;
+  }
+  .versao:hover{background:var(--paper);border-color:var(--ink);}
+  .versao:active{background:var(--cat-color-soft);}
+  .versao .tag{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted-2);
+    margin-bottom:5px;
+  }
+
+  .item.pending{background:repeating-linear-gradient(135deg, var(--paper), var(--paper) 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px);}
+  .badge-pending{
+    display:inline-block;
+    margin-left:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:var(--cat-color);
+    border:1px solid var(--cat-color);
+    padding:1px 6px;
+    border-radius:2px;
+    vertical-align:middle;
+  }
+  .pending-hint{
+    font-size:12.5px;
+    color:var(--muted);
+    font-style:italic;
+    padding:4px 0 2px;
+  }
+
+  .empty-state{
+    padding:40px 20px;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  footer{
+    max-width:980px;
+    margin:30px auto 0;
+    padding:0 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted-2);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  #toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:var(--surface);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:11px 18px;
+    border-radius:2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    z-index:50;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.err{background:var(--err);}
+  #toast .ok-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none;}
+  #toast.err .ok-dot{background:#fff;}
+
+  mark{background:#FDE68A;color:inherit;padding:0 1px;}
+
+  #modalOverlay, #gateOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(22,33,30,0.55);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    overflow-y:auto;
+    z-index:60;
+  }
+  #modalOverlay.show, #gateOverlay.show{display:flex;}
+  .modal{
+    background:var(--surface);
+    border:1.5px solid var(--ink);
+    width:100%;
+    max-width:560px;
+    padding:22px 22px 20px;
+  }
+  .modal h2{font-family:'IBM Plex Mono', monospace;font-size:15px;margin-bottom:6px;}
+  .modal .sub{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+  .field select, .field textarea, .field input[type=text], .field input[type=password], .field input[type=url]{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13.5px;
+    padding:9px 10px;
+    border:1.5px solid var(--line-strong);
+    background:var(--paper);
+    color:var(--ink);
+    outline:none;
+  }
+  .field select{font-family:'IBM Plex Mono', monospace;font-size:12.5px;}
+  .field textarea{resize:vertical;min-height:64px;line-height:1.5;}
+  .field select:focus, .field textarea:focus, .field input:focus{border-color:var(--ink);}
+  .field-hint{font-size:11px;color:var(--muted-2);margin-top:4px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+  .modal-error{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--err);
+    margin-bottom:12px;
+    display:none;
+  }
+  .modal-error.show{display:block;}
+</style>
+</head>
+<body>
+
+<div id="gateOverlay">
+  <form class="modal" id="gateForm">
+    <h2>Conectar à API</h2>
+    <p class="sub">Esta página só abre com uma chave de API válida. O endereço e a chave ficam salvos apenas neste navegador (localStorage) — nunca no código da página.</p>
+    <div class="modal-error" id="gateError"></div>
+    <div class="field">
+      <label for="gateEndpoint">Endereço base da API</label>
+      <input type="url" id="gateEndpoint" required placeholder="https://smlapi.duckdns.org/prompts" value="https://smlapi.duckdns.org/prompts">
+    </div>
+    <div class="field">
+      <label for="gateKey">Chave de API (X-API-Key)</label>
+      <input type="password" id="gateKey" required placeholder="sua chave">
+    </div>
+    <div class="modal-actions">
+      <button type="submit" class="btn" id="gateSubmit">Entrar</button>
+    </div>
+  </form>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="form-title">
+      <div>
+        <div class="eyebrow">Curso Técnico em Análises Clínicas</div>
+        <h1>Orientações · Diário de Bordo</h1>
+      </div>
+      <div class="right">
+        <div class="count" id="visibleCount">—</div>
+        <button class="gear" id="btnConfig" title="Trocar endpoint/chave">⚙</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Filtrar por palavra (tema, texto, categoria)…" autocomplete="off">
+      </div>
+      <button class="btn" id="btnNovo">+ Nova orientação</button>
+      <button class="btn ghost" id="btnRecarregar">Recarregar</button>
+      <button class="btn" id="btnExport">Backup JSON</button>
+      <button class="btn ghost" id="btnImport">Importar JSON</button>
+      <input type="file" id="fileInput" accept="application/json">
+    </div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  <span>Clique em uma versão para copiar</span>
+  <span id="lastUpdated"></span>
+</footer>
+
+<div id="toast"><span class="ok-dot"></span><span id="toastText">Copiado</span></div>
+
+<div id="modalOverlay">
+  <form class="modal" id="modalForm">
+    <h2 id="modalTitle">Nova orientação</h2>
+    <input type="hidden" id="fieldId">
+    <div class="field">
+      <label for="fieldCategoria">Categoria</label>
+      <select id="fieldCategoria" required></select>
+    </div>
+    <div class="field">
+      <label for="fieldTema">Tema</label>
+      <input type="text" id="fieldTema" required placeholder="Ex.: Uso de corretivo nas anotações">
+    </div>
+    <div class="field">
+      <label for="fieldSimples">Versão simples</label>
+      <textarea id="fieldSimples" required placeholder="Descreva a inadequação de forma objetiva…"></textarea>
+    </div>
+    <div class="field">
+      <label for="fieldFutura">Versão com orientação futura</label>
+      <textarea id="fieldFutura" placeholder="Mesma observação + orientação para os próximos registros…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="btnCancelar">Cancelar</button>
+      <button type="submit" class="btn">Salvar</button>
+    </div>
+  </form>
+</div>
+
+<script>
+// ===== Categorias fixas =====
+const CATEGORIAS = [
+  {id:1, nome:"Estrutura e organização geral", cor:"var(--cat-1)", corSoft:"var(--cat-1-soft)"},
+  {id:2, nome:"Observações/Erros e Resultados", cor:"var(--cat-2)", corSoft:"var(--cat-2-soft)"},
+  {id:3, nome:"Revisão Bibliográfica e Referências", cor:"var(--cat-3)", corSoft:"var(--cat-3-soft)"},
+  {id:4, nome:"Conclusão", cor:"var(--cat-4)", corSoft:"var(--cat-4-soft)"}
+];
+
+// Marcador usado no campo tag1 do Prompt Master para isolar registros desta página
+// de qualquer outro prompt não relacionado que já exista na mesma base.
+const DIARIO_TAG = "diario-orientacao";
+
+// ===== Config (endpoint + chave) — só isso vai pro localStorage =====
+const CONFIG_KEY = "diario-orientacoes-config";
+
+function getConfig(){
+  try{
+    const raw = localStorage.getItem(CONFIG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function setConfig(cfg){
+  try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }catch(e){ /* sem storage disponível */ }
+}
+function clearConfig(){
+  try{ localStorage.removeItem(CONFIG_KEY); }catch(e){}
+}
+
+// ===== Adapter — empacota/desempacota as duas versões no campo "prompt" =====
+function empacotar(simples, futura){
+  return `VERSÃO SIMPLES:\n${simples || ""}\n\nVERSÃO COM ORIENTAÇÃO FUTURA:\n${futura || ""}`;
+}
+function desempacotar(texto){
+  const re = /VERS[ÃA]O SIMPLES:\s*([\s\S]*?)\n\s*\n\s*VERS[ÃA]O COM ORIENTA[ÇC][ÃA]O FUTURA:\s*([\s\S]*)/i;
+  const m = (texto || "").match(re);
+  if(m) return {simples: m[1].trim(), futura: m[2].trim()};
+  return {simples: (texto || "").trim(), futura: ""};
+}
+
+// ===== Chamadas à API do Prompt Master =====
+async function apiFetch(cfg, path, options={}){
+  const res = await fetch(cfg.endpoint.replace(/\/$/,"") + path, {
+    ...options,
+    headers:{
+      "X-API-Key": cfg.apiKey,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  if(res.status === 401 || res.status === 403){
+    throw new Error("AUTH");
+  }
+  if(!res.ok){
+    throw new Error("Falha na API (" + res.status + ")");
+  }
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+async function apiListar(cfg){
+  const data = await apiFetch(cfg, "/api/prompts");
+  const lista = Array.isArray(data) ? data : (data.prompts || data.items || []);
+  return lista
+    .filter(p => p.tag1 === DIARIO_TAG || p.tag2 === DIARIO_TAG || p.tag3 === DIARIO_TAG)
+    .map(p => {
+      const cat = CATEGORIAS.find(c => c.nome === p.categoria);
+      const partes = desempacotar(p.prompt);
+      return {
+        id: String(p.id),
+        categoria_id: cat ? cat.id : CATEGORIAS[0].id,
+        tema: p.titulo,
+        versao_simples: partes.simples,
+        versao_futura: partes.futura
+      };
+    });
+}
+
+async function apiCriar(cfg, item){
+  const cat = CATEGORIAS.find(c => c.id === item.categoria_id);
+  const criado = await apiFetch(cfg, "/api/prompts", {
+    method:"POST",
+    body: JSON.stringify({
+      titulo: item.tema,
+      prompt: empacotar(item.versao_simples, item.versao_futura),
+      categoria: cat ? cat.nome : "",
+      tag1: DIARIO_TAG
+    })
+  });
+  return String(criado.id);
+}
+
+async function apiAtualizar(cfg, id, item){
+  const cat = CATEGORIAS.find(c => c.id === item.categoria_id);
+  await apiFetch(cfg, "/api/prompts/" + id, {
+    method:"PATCH",
+    body: JSON.stringify({
+      titulo: item.tema,
+      prompt: empacotar(item.versao_simples, item.versao_futura),
+      categoria: cat ? cat.nome : "",
+      tag1: DIARIO_TAG
+    })
+  });
+}
+
+async function apiExcluir(cfg, id){
+  await apiFetch(cfg, "/api/prompts/" + id, {method:"DELETE"});
+}
+
+// ===== Estado =====
+let orientacoes = [];
+let filtro = "";
+let carregando = false;
+
+// ===== Utilidades =====
+function normalizar(str){
+  return str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+}
+function escapeHtml(str){
+  return str.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function highlight(text, termo){
+  if(!termo) return escapeHtml(text);
+  const re = new RegExp("(" + termo.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + ")", "ig");
+  if(text.match(re)){
+    return escapeHtml(text).replace(new RegExp("(" + termo.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + ")","ig"), "<mark>$1</mark>");
+  }
+  return escapeHtml(text);
+}
+function toast(msg, isError){
+  const t = document.getElementById("toast");
+  document.getElementById("toastText").textContent = msg;
+  t.classList.toggle("err", !!isError);
+  t.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=> t.classList.remove("show"), 2200);
+}
+function copiar(texto){
+  const done = () => toast("Copiado ✓");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(texto).then(done).catch(()=>fallbackCopy(texto, done));
+  } else { fallbackCopy(texto, done); }
+}
+function fallbackCopy(texto, cb){
+  const ta = document.createElement("textarea");
+  ta.value = texto; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); cb(); }catch(e){ toast("Não foi possível copiar", true); }
+  document.body.removeChild(ta);
+}
+
+// ===== Carregamento =====
+async function carregar(){
+  const cfg = getConfig();
+  if(!cfg) return abrirGate();
+  carregando = true;
+  renderStatus("Carregando orientações…");
+  try{
+    orientacoes = await apiListar(cfg);
+    carregando = false;
+    render();
+  }catch(err){
+    carregando = false;
+    if(err.message === "AUTH"){
+      toast("Chave de API inválida ou expirada", true);
+      abrirGate("Chave rejeitada pela API. Verifique e tente novamente.");
+    }else{
+      renderStatus("Não foi possível carregar as orientações. " + err.message, true, carregar);
+    }
+  }
+}
+
+function renderStatus(msg, isError, retryFn){
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "status-line" + (isError ? " error" : "");
+  div.textContent = msg;
+  if(retryFn){
+    const btn = document.createElement("button");
+    btn.className = "btn ghost";
+    btn.textContent = "Tentar novamente";
+    btn.onclick = retryFn;
+    div.appendChild(btn);
+  }
+  main.appendChild(div);
+}
+
+// ===== Render =====
+function itemMatches(item, termo){
+  if(!termo) return true;
+  const t = normalizar(termo);
+  return normalizar(item.tema).includes(t) ||
+         normalizar(item.versao_simples).includes(t) ||
+         normalizar(item.versao_futura).includes(t);
+}
+
+function render(){
+  if(carregando) return;
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  let totalVisivel = 0;
+
+  CATEGORIAS.forEach(cat => {
+    const itensCat = orientacoes.filter(o => o.categoria_id === cat.id && itemMatches(o, filtro));
+    const totalCat = orientacoes.filter(o => o.categoria_id === cat.id).length;
+    totalVisivel += itensCat.length;
+
+    const section = document.createElement("section");
+    section.className = "category";
+    section.style.setProperty("--cat-color", cat.cor);
+    section.style.setProperty("--cat-color-soft", cat.corSoft);
+
+    const head = document.createElement("div");
+    head.className = "category-head";
+    head.innerHTML = `
+      <span class="cap"></span>
+      <span class="cat-num">0${cat.id}</span>
+      <span class="cat-name">${escapeHtml(cat.nome)}</span>
+      <span class="cat-count">${itensCat.length}/${totalCat}</span>
+    `;
+    section.appendChild(head);
+
+    const itemsWrap = document.createElement("div");
+    itemsWrap.className = "items";
+
+    if(itensCat.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = filtro ? "Nenhuma orientação encontrada nesta categoria." : "Nenhuma orientação cadastrada nesta categoria.";
+      itemsWrap.appendChild(empty);
+    } else {
+      itensCat.forEach(item => {
+        const pendente = !item.versao_simples && !item.versao_futura;
+        const el = document.createElement("div");
+        el.className = "item" + (pendente ? " pending" : "");
+        el.innerHTML = `
+          <div class="item-actions">
+            <button type="button" data-action="editar" data-id="${item.id}">Editar</button>
+            <button type="button" class="danger" data-action="excluir" data-id="${item.id}">Excluir</button>
+          </div>
+          <div class="item-tema">${highlight(item.tema, filtro)}${pendente ? '<span class="badge-pending">pendente de redação</span>' : ''}</div>
+          ${pendente ? `
+          <div class="pending-hint">Só o tema foi importado — falta redigir as duas versões (edite manualmente ou peça pra IA gerar a partir do tema).</div>
+          ` : `
+          <div class="versoes">
+            <div class="versao" data-copy="simples" data-id="${item.id}">
+              <span class="tag">Versão simples</span>${highlight(item.versao_simples, filtro)}
+            </div>
+            <div class="versao" data-copy="futura" data-id="${item.id}">
+              <span class="tag">Versão com orientação futura</span>${highlight(item.versao_futura, filtro)}
+            </div>
+          </div>
+          `}
+        `;
+        itemsWrap.appendChild(el);
+      });
+    }
+    section.appendChild(itemsWrap);
+    main.appendChild(section);
+  });
+
+  document.getElementById("visibleCount").textContent =
+    `${totalVisivel} orientaç${totalVisivel === 1 ? "ão" : "ões"}${filtro ? " encontrada" + (totalVisivel===1?"":"s") : ""}`;
+  document.getElementById("lastUpdated").textContent = `${orientacoes.length} no total · via API`;
+}
+
+// ===== Gate (endpoint + chave) =====
+function abrirGate(erro){
+  document.getElementById("gateError").textContent = erro || "";
+  document.getElementById("gateError").classList.toggle("show", !!erro);
+  const cfg = getConfig();
+  if(cfg){
+    document.getElementById("gateEndpoint").value = cfg.endpoint;
+  }
+  document.getElementById("gateOverlay").classList.add("show");
+}
+function fecharGate(){ document.getElementById("gateOverlay").classList.remove("show"); }
+
+document.getElementById("gateForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const endpoint = document.getElementById("gateEndpoint").value.trim().replace(/\/$/,"");
+  const apiKey = document.getElementById("gateKey").value.trim();
+  const btn = document.getElementById("gateSubmit");
+  btn.disabled = true; btn.textContent = "Verificando…";
+  const gateErrorEl = document.getElementById("gateError");
+  gateErrorEl.classList.remove("show");
+  try{
+    await apiFetch({endpoint, apiKey}, "/api/health");
+    setConfig({endpoint, apiKey});
+    fecharGate();
+    document.getElementById("gateKey").value = "";
+    await carregar();
+  }catch(err){
+    gateErrorEl.textContent = err.message === "AUTH" ? "Chave de API rejeitada." : "Não foi possível conectar: " + err.message;
+    gateErrorEl.classList.add("show");
+  }finally{
+    btn.disabled = false; btn.textContent = "Entrar";
+  }
+});
+
+document.getElementById("btnConfig").addEventListener("click", () => {
+  if(confirm("Trocar endpoint/chave? Você vai precisar informar a chave novamente.")){
+    clearConfig();
+    abrirGate();
+  }
+});
+
+// ===== Ações de item =====
+document.getElementById("main").addEventListener("click", (e) => {
+  const actionBtn = e.target.closest("[data-action]");
+  if(actionBtn){
+    const item = orientacoes.find(o => o.id === actionBtn.dataset.id);
+    if(!item) return;
+    if(actionBtn.dataset.action === "editar") abrirModal(item);
+    if(actionBtn.dataset.action === "excluir") excluirItem(item);
+    return;
+  }
+  const el = e.target.closest(".versao");
+  if(!el) return;
+  const item = orientacoes.find(o => o.id === el.dataset.id);
+  if(!item) return;
+  copiar(el.dataset.copy === "simples" ? item.versao_simples : item.versao_futura);
+});
+
+async function excluirItem(item){
+  if(!confirm(`Excluir a orientação "${item.tema}"?`)) return;
+  const cfg = getConfig();
+  try{
+    await apiExcluir(cfg, item.id);
+    orientacoes = orientacoes.filter(o => o.id !== item.id);
+    render();
+    toast("Excluído ✓");
+  }catch(err){
+    toast(err.message === "AUTH" ? "Chave inválida" : "Erro ao excluir: " + err.message, true);
+  }
+}
+
+// ===== Modal — entrada manual =====
+const modalOverlay = document.getElementById("modalOverlay");
+const modalForm = document.getElementById("modalForm");
+const fieldCategoria = document.getElementById("fieldCategoria");
+fieldCategoria.innerHTML = CATEGORIAS.map(c => `<option value="${c.id}">0${c.id} — ${escapeHtml(c.nome)}</option>`).join("");
+
+function abrirModal(item){
+  document.getElementById("modalTitle").textContent = item ? "Editar orientação" : "Nova orientação";
+  document.getElementById("fieldId").value = item ? item.id : "";
+  fieldCategoria.value = item ? item.categoria_id : CATEGORIAS[0].id;
+  document.getElementById("fieldTema").value = item ? item.tema : "";
+  document.getElementById("fieldSimples").value = item ? item.versao_simples : "";
+  document.getElementById("fieldFutura").value = item ? item.versao_futura : "";
+  modalOverlay.classList.add("show");
+  document.getElementById("fieldTema").focus();
+}
+function fecharModal(){ modalOverlay.classList.remove("show"); modalForm.reset(); }
+
+document.getElementById("btnNovo").addEventListener("click", () => abrirModal(null));
+document.getElementById("btnCancelar").addEventListener("click", fecharModal);
+modalOverlay.addEventListener("click", (e) => { if(e.target === modalOverlay) fecharModal(); });
+
+modalForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const cfg = getConfig();
+  const id = document.getElementById("fieldId").value;
+  const dados = {
+    categoria_id: Number(fieldCategoria.value),
+    tema: document.getElementById("fieldTema").value.trim(),
+    versao_simples: document.getElementById("fieldSimples").value.trim(),
+    versao_futura: document.getElementById("fieldFutura").value.trim()
+  };
+  if(!dados.tema || !dados.versao_simples){
+    toast("Preencha ao menos tema e versão simples", true);
+    return;
+  }
+  const duplicado = orientacoes.some(o =>
+    o.id !== id && o.categoria_id === dados.categoria_id && normalizar(o.tema) === normalizar(dados.tema)
+  );
+  if(duplicado && !confirm(`Já existe uma orientação com o tema "${dados.tema}" nesta categoria. Salvar mesmo assim?`)){
+    return;
+  }
+  try{
+    if(id){
+      await apiAtualizar(cfg, id, dados);
+      const idx = orientacoes.findIndex(o => o.id === id);
+      if(idx > -1) orientacoes[idx] = {id, ...dados};
+    } else {
+      const novoId = await apiCriar(cfg, dados);
+      orientacoes.push({id: novoId, ...dados});
+    }
+    fecharModal();
+    render();
+    toast(id ? "Atualizado ✓" : "Adicionado ✓");
+  }catch(err){
+    toast(err.message === "AUTH" ? "Chave inválida" : "Erro ao salvar: " + err.message, true);
+  }
+});
+
+// ===== Busca =====
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  filtro = e.target.value.trim();
+  render();
+});
+
+// ===== Recarregar =====
+document.getElementById("btnRecarregar").addEventListener("click", carregar);
+
+// ===== Backup / Importar =====
+document.getElementById("btnExport").addEventListener("click", () => {
+  const payload = {
+    versao: 1,
+    exportado_em: new Date().toISOString(),
+    categorias: CATEGORIAS.map(c => ({id:c.id, nome:c.nome})),
+    orientacoes: orientacoes
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `orientacoes-diario-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Backup gerado ✓");
+});
+
+document.getElementById("btnImport").addEventListener("click", () => document.getElementById("fileInput").click());
+
+document.getElementById("fileInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    try{
+      const data = JSON.parse(evt.target.result);
+      const lista = Array.isArray(data) ? data : data.orientacoes;
+      if(!Array.isArray(lista)) throw new Error("Formato inválido");
+      // versao_simples é opcional agora: um item só com "tema" entra como pendente,
+      // pronto pra ser redigido depois (manualmente ou por IA a partir do tema).
+      const validas = lista.filter(o => o && o.tema && o.categoria_id);
+      if(validas.length === 0) throw new Error("Nenhuma orientação válida encontrada no arquivo (precisa de tema e categoria_id)");
+
+      const pendentes = validas.filter(o => !o.versao_simples && !o.versao_futura).length;
+      const confirmMsg = `Importar ${validas.length} orientações para a API` +
+        (pendentes ? ` (${pendentes} só com tema, entram como pendentes)` : "") +
+        `? Duplicadas (mesmo tema + categoria já existente) serão ignoradas.`;
+      if(!confirm(confirmMsg)) return;
+
+      const cfg = getConfig();
+      let ok = 0, falhas = 0, duplicadas = 0;
+      for(const item of validas){
+        const categoriaId = Number(item.categoria_id);
+        const jaExiste = orientacoes.some(o =>
+          o.categoria_id === categoriaId && normalizar(o.tema) === normalizar(item.tema)
+        );
+        if(jaExiste){ duplicadas++; continue; }
+        try{
+          await apiCriar(cfg, {
+            categoria_id: categoriaId,
+            tema: item.tema,
+            versao_simples: item.versao_simples || "",
+            versao_futura: item.versao_futura || ""
+          });
+          ok++;
+        }catch(err){ falhas++; }
+      }
+      await carregar();
+      const partes = [`${ok} novo${ok===1?"":"s"}`];
+      if(duplicadas) partes.push(`${duplicadas} duplicado${duplicadas===1?"":"s"} ignorado${duplicadas===1?"":"s"}`);
+      if(falhas) partes.push(`${falhas} com falha`);
+      toast(`Importado: ${partes.join(", ")}`, falhas > 0 && ok === 0);
+    }catch(err){
+      toast("Erro ao importar: " + err.message, true);
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+
+// ===== Início =====
+carregar();
+</script>
+</body>
+</html>
